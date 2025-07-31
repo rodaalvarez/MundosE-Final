@@ -18,9 +18,9 @@ Esta guía te ayudará a configurar SonarQube **completamente gratis** para tu p
 - ✅ **Fácil configuración**
 - ✅ **Integración directa con GitHub**
 
-## 🚀 **Opción 1: SonarQube Community Edition (Local)**
+## 🚀 **Opción 1: SonarQube Community Edition (Local) - Docker**
 
-### Paso 1: Instalar en tu VM Ubuntu
+### Paso 1: Instalar con Docker (Recomendado)
 
 ```bash
 # En tu VM Ubuntu
@@ -29,29 +29,50 @@ sudo mkdir sonarqube
 sudo chown $USER:$USER sonarqube
 cd sonarqube
 
-# Descargar SonarQube Community Edition
-wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-10.4.0.87267.zip
+# Crear docker-compose.yml para SonarQube
+cat > docker-compose.yml << 'EOF'
+version: '3.8'
 
-# Descomprimir
-unzip sonarqube-10.4.0.87267.zip
-mv sonarqube-10.4.0.87267 sonarqube
-cd sonarqube
+services:
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/api/system/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-# Configurar memoria (opcional)
-echo "sonar.search.javaOpts=-Xmx512m -Xms512m -XX:MaxDirectMemorySize=256m -XX:+HeapDumpOnOutOfMemoryError" >> conf/sonar.properties
+volumes:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+EOF
+
+# Configurar firewall
+sudo ufw allow 9000/tcp
 ```
 
 ### Paso 2: Iniciar SonarQube
 
 ```bash
-# Iniciar SonarQube
-./bin/linux-x86-64/sonar.sh start
+# Iniciar SonarQube con Docker
+docker-compose up -d
 
 # Verificar estado
-./bin/linux-x86-64/sonar.sh status
+docker-compose ps
 
 # Ver logs
-tail -f logs/sonar.log
+docker-compose logs -f sonarqube
 ```
 
 ### Paso 3: Acceder a SonarQube
@@ -185,6 +206,17 @@ tail -f logs/sonar.log
 
 ## 🚨 **Troubleshooting**
 
+### Problema: Error 403 al descargar SonarQube
+
+Si obtienes error 403 al intentar descargar SonarQube manualmente:
+
+**Solución**: Usar Docker (recomendado)
+```bash
+# Docker es la forma más fácil y confiable
+docker pull sonarqube:community
+docker-compose up -d
+```
+
 ### Problema: SonarQube no inicia
 
 ```bash
@@ -194,8 +226,11 @@ free -h
 # Verificar puerto 9000
 netstat -tlnp | grep 9000
 
-# Verificar logs
-tail -f logs/sonar.log
+# Verificar logs (Docker)
+docker-compose logs -f sonarqube
+
+# Verificar estado del contenedor
+docker-compose ps
 ```
 
 ### Problema: Error de conexión
