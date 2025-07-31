@@ -82,19 +82,28 @@ jobs:
         cd app
         npm test -- --coverage
         
+    - name: Setup SonarQube Scanner
+      uses: SonarSource/setup-sonarqube-scanner@v1
+      with:
+        version: '4.8'
+        
     - name: SonarQube Scan
+      run: |
+        cd app
+        sonar-scanner \
+          -Dsonar.projectKey=devops-project \
+          -Dsonar.sources=src \
+          -Dsonar.host.url=${{ env.SONAR_HOST_URL }} \
+          -Dsonar.login=${{ env.SONAR_TOKEN }} \
+          -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+          -Dsonar.coverage.exclusions=**/*.test.tsx,**/*.test.ts,**/__tests__/**
+          
+    - name: SonarQube Quality Gate Check
       uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
       with:
-        scannerHome: ${{ github.workspace }}/sonar-scanner
-        args: >
-          -Dsonar.projectKey=devops-project
-          -Dsonar.sources=app/src
-          -Dsonar.host.url=${{ env.SONAR_HOST_URL }}
-          -Dsonar.login=${{ env.SONAR_TOKEN }}
-          -Dsonar.javascript.lcov.reportPaths=app/coverage/lcov.info
+        scanMetadataReportFile: app/.scannerwork/report-task.txt
 
   build-and-push:
     needs: [test, sonarqube]
