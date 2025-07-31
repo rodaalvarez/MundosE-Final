@@ -9,6 +9,8 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  VM_HOST: 192.168.220.128
+  VM_USERNAME: rodrigo
 
 jobs:
   test:
@@ -136,15 +138,17 @@ jobs:
     steps:
     - name: Debug secrets
       run: |
-        echo "VM_HOST: ${{ secrets.VM_HOST }}"
-        echo "VM_USERNAME: ${{ secrets.VM_USERNAME }}"
-        echo "VM_SSH_KEY length: ${#VM_SSH_KEY}"
-        if [ -z "${{ secrets.VM_HOST }}" ]; then
-          echo "ERROR: VM_HOST is empty"
+        echo "VM_HOST (env): ${{ env.VM_HOST }}"
+        echo "VM_USERNAME (env): ${{ env.VM_USERNAME }}"
+        echo "VM_HOST (secrets): ${{ secrets.VM_HOST }}"
+        echo "VM_USERNAME (secrets): ${{ secrets.VM_USERNAME }}"
+        echo "VM_SSH_KEY (secrets): ${{ secrets.VM_SSH_KEY }}"
+        if [ -z "${{ env.VM_HOST }}" ]; then
+          echo "ERROR: VM_HOST env is empty"
           exit 1
         fi
-        if [ -z "${{ secrets.VM_USERNAME }}" ]; then
-          echo "ERROR: VM_USERNAME is empty"
+        if [ -z "${{ env.VM_USERNAME }}" ]; then
+          echo "ERROR: VM_USERNAME env is empty"
           exit 1
         fi
         if [ -z "${{ secrets.VM_SSH_KEY }}" ]; then
@@ -155,8 +159,8 @@ jobs:
     - name: Deploy to VM
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: ${{ secrets.VM_HOST }}
-        username: ${{ secrets.VM_USERNAME }}
+        host: ${{ env.VM_HOST }}
+        username: ${{ env.VM_USERNAME }}
         key: ${{ secrets.VM_SSH_KEY }}
         port: 22
         script: |
@@ -170,4 +174,4 @@ jobs:
     - name: Health check
       run: |
         sleep 30
-        curl -f http://${{ secrets.VM_HOST }}:3000 || exit 1 
+        curl -f http://${{ env.VM_HOST }}:3000 || exit 1 
