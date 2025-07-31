@@ -8,7 +8,6 @@ const Home: NextPage = () => {
       <Head>
         <title>DevOps Project - Hola Mundo</title>
         <meta name="description" content="Proyecto final DevOps - Aplicación Next.js" />
-        <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main className={styles.main}>
