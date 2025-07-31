@@ -1,4 +1,4 @@
-# 🚀 Proyecto Final DevOps - Next.js Pipeline
+# 🚀 Proyecto Final DevOps - Next.js Pipeline ✅
 
 Este proyecto implementa un pipeline DevOps completo para una aplicación Next.js, incluyendo CI/CD con GitHub Actions, análisis de calidad con SonarQube, y despliegue automatizado en una VM Ubuntu.
 
