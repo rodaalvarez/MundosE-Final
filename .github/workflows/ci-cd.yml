@@ -134,6 +134,24 @@ jobs:
     if: github.ref == 'refs/heads/main'
     
     steps:
+    - name: Debug secrets
+      run: |
+        echo "VM_HOST: ${{ secrets.VM_HOST }}"
+        echo "VM_USERNAME: ${{ secrets.VM_USERNAME }}"
+        echo "VM_SSH_KEY length: ${#VM_SSH_KEY}"
+        if [ -z "${{ secrets.VM_HOST }}" ]; then
+          echo "ERROR: VM_HOST is empty"
+          exit 1
+        fi
+        if [ -z "${{ secrets.VM_USERNAME }}" ]; then
+          echo "ERROR: VM_USERNAME is empty"
+          exit 1
+        fi
+        if [ -z "${{ secrets.VM_SSH_KEY }}" ]; then
+          echo "ERROR: VM_SSH_KEY is empty"
+          exit 1
+        fi
+      
     - name: Deploy to VM
       uses: appleboy/ssh-action@v1.0.3
       with:
