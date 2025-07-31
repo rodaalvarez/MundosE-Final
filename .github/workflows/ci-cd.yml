@@ -11,6 +11,9 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   VM_HOST: 192.168.220.128
   VM_USERNAME: rodrigo
+  VM_SSH_KEY: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCFj1Q8dlUeMk4nDdVNs/CLPDVRyjklpl3VQjz+Ce0WWCEFFpWNpu/HVVbE+9d21iJhTCROaK3Bdf+WpIy3dZDfBrSCPgb18i1wpqK24yB07PNPuKikMaNNvojkR0xN2k0V8Slmo4F/xppqBWIDzntsi/wOehf2Bc7YRdDhE4TYI1st+DQH+kFQKVg4fa1rZ2taPfNNTFExdVaJLToWOGMJFoeNe05Q2pR43J1YSNx0vaBT+6Kkvc8N1UG0Mk56D0S8lTQY4bx5LgGewPf11dNdcixkIpZpLlBZMu+VlngrMo/W37jYlmaTrFyBW2x2V1VQQulYfP3uFN0WvnbE35dLgZpbigXcnPc4EbCmwpeNVLt09cyrlHWrnvLj3UyELsopHDU2FEYN1uqua92rgFP3s/lxZ+8C4y/G2SGL6cVnTRlbVHxtVIIIGGcQZv+CQQnVQ/2C6eOeOcUDInb4tRb9+XSPPvGoPYbe4xXaKEEMYG3hM6lBEfz9Vyd8fFknBGdyTZQL+limbk8B3RFB+TzA3JJkCCI/h3MSVsKXYjFUWgQEfn4JCvI6H9agl2LajpGpOByO8NSFbydRV6Ihp/gp5f+K5jFzzJOigF31YGUc/W5ifCFnV1qRp1O63+sps74bgw3Y/tV2CAHSS+mtD11bS/l26B3iL2NrhcYM+X2cfQ== github-deploy
+  SONAR_TOKEN: sqp_26d8ef99c7c2ff9fb39b94de2f088fb18f33c8b1
+  SONAR_HOST_URL: http://192.168.220.128:9000
 
 jobs:
   test:
@@ -52,49 +55,49 @@ jobs:
         cd app
         npm run build
 
-  # sonarqube:
-  #   needs: test
-  #   runs-on: ubuntu-latest
-  #   
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v4
-  #     with:
-  #       fetch-depth: 0
-  #       
-  #   - name: Setup Node.js
-  #     uses: actions/setup-node@v4
-  #     with:
-  #       node-version: '18'
-  #       cache: 'npm'
-  #       cache-dependency-path: app/package-lock.json
-  #       
-  #   - name: Install dependencies
-  #     run: |
-  #       cd app
-  #       npm ci
-  #       
-  #   - name: Run tests with coverage
-  #     run: |
-  #       cd app
-  #       npm test -- --coverage
-  #       
-  #   - name: SonarQube Scan
-  #     uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  #     with:
-  #       scannerHome: ${{ github.workspace }}/sonar-scanner
-  #       args: >
-  #         -Dsonar.projectKey=devops-project
-  #         -Dsonar.sources=app/src
-  #         -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
-  #         -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-  #         -Dsonar.javascript.lcov.reportPaths=app/coverage/lcov.info
+  sonarqube:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: app/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd app
+        npm ci
+        
+    - name: Run tests with coverage
+      run: |
+        cd app
+        npm test -- --coverage
+        
+    - name: SonarQube Scan
+      uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+      with:
+        scannerHome: ${{ github.workspace }}/sonar-scanner
+        args: >
+          -Dsonar.projectKey=devops-project
+          -Dsonar.sources=app/src
+          -Dsonar.host.url=${{ env.SONAR_HOST_URL }}
+          -Dsonar.login=${{ env.SONAR_TOKEN }}
+          -Dsonar.javascript.lcov.reportPaths=app/coverage/lcov.info
 
   build-and-push:
-    needs: [test]
+    needs: [test, sonarqube]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     
@@ -136,22 +139,20 @@ jobs:
     if: github.ref == 'refs/heads/main'
     
     steps:
-    - name: Debug secrets
+    - name: Debug variables
       run: |
-        echo "VM_HOST (env): ${{ env.VM_HOST }}"
-        echo "VM_USERNAME (env): ${{ env.VM_USERNAME }}"
-        echo "VM_HOST (secrets): ${{ secrets.VM_HOST }}"
-        echo "VM_USERNAME (secrets): ${{ secrets.VM_USERNAME }}"
-        echo "VM_SSH_KEY (secrets): ${{ secrets.VM_SSH_KEY }}"
+        echo "VM_HOST: ${{ env.VM_HOST }}"
+        echo "VM_USERNAME: ${{ env.VM_USERNAME }}"
+        echo "SONAR_HOST_URL: ${{ env.SONAR_HOST_URL }}"
         if [ -z "${{ env.VM_HOST }}" ]; then
-          echo "ERROR: VM_HOST env is empty"
+          echo "ERROR: VM_HOST is empty"
           exit 1
         fi
         if [ -z "${{ env.VM_USERNAME }}" ]; then
-          echo "ERROR: VM_USERNAME env is empty"
+          echo "ERROR: VM_USERNAME is empty"
           exit 1
         fi
-        if [ -z "${{ secrets.VM_SSH_KEY }}" ]; then
+        if [ -z "${{ env.VM_SSH_KEY }}" ]; then
           echo "ERROR: VM_SSH_KEY is empty"
           exit 1
         fi
@@ -161,7 +162,7 @@ jobs:
       with:
         host: ${{ env.VM_HOST }}
         username: ${{ env.VM_USERNAME }}
-        key: ${{ secrets.VM_SSH_KEY }}
+        key: ${{ env.VM_SSH_KEY }}
         port: 22
         script: |
           # Actualizar la aplicación
