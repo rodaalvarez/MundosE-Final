@@ -80,7 +80,7 @@ docker-compose logs -f sonarqube
 1. **Abrir navegador**: `http://IP-DE-TU-VM:9000`
 2. **Login por defecto**: `admin/admin`
 3. **Cambiar contraseña** cuando se solicite
-
+http://192.168.220.128:9000
 ### Paso 4: Crear Proyecto
 
 1. **Click en "Create new project"**

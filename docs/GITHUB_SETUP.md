@@ -79,9 +79,9 @@ cat ~/.ssh/id_rsa.pub
 3. **Agregar cada secret**:
 
 ```
-VM_HOST=192.168.1.100          # IP de tu VM
-VM_USERNAME=tu-usuario         # Usuario de la VM
-VM_SSH_KEY=-----BEGIN OPENSSH PRIVATE KEY-----...  # Clave SSH privada completa
+VM_HOST=192.168.220.128          # IP de tu VM
+VM_USERNAME=rodrigo         # Usuario de la VM
+VM_SSH_KEY=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCFj1Q8dlUeMk4nDdVNs/CLPDVRyjklpl3VQjz+Ce0WWCEFFpWNpu/HVVbE+9d21iJhTCROaK3Bdf+WpIy3dZDfBrSCPgb18i1wpqK24yB07PNPuKikMaNNvojkR0xN2k0V8Slmo4F/xppqBWIDzntsi/wOehf2Bc7YRdDhE4TYI1st+DQH+kFQKVg4fa1rZ2taPfNNTFExdVaJLToWOGMJFoeNe05Q2pR43J1YSNx0vaBT+6Kkvc8N1UG0Mk56D0S8lTQY4bx5LgGewPf11dNdcixkIpZpLlBZMu+VlngrMo/W37jYlmaTrFyBW2x2V1VQQulYfP3uFN0WvnbE35dLgZpbigXcnPc4EbCmwpeNVLt09cyrlHWrnvLj3UyELsopHDU2FEYN1uqua92rgFP3s/lxZ+8C4y/G2SGL6cVnTRlbVHxtVIIIGGcQZv+CQQnVQ/2C6eOeOcUDInb4tRb9+XSPPvGoPYbe4xXaKEEMYG3hM6lBEfz9Vyd8fFknBGdyTZQL+limbk8B3RFB+TzA3JJkCCI/h3MSVsKXYjFUWgQEfn4JCvI6H9agl2LajpGpOByO8NSFbydRV6Ihp/gp5f+K5jFzzJOigF31YGUc/W5ifCFnV1qRp1O63+sps74bgw3Y/tV2CAHSS+mtD11bS/l26B3iL2NrhcYM+X2cfQ== github-deploy
 SONAR_TOKEN=sqp_xxxxxxxxxxxxx  # Token de SonarQube
 SONAR_HOST_URL=http://192.168.1.100:9000  # URL de SonarQube
 ```
