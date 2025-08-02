@@ -7,14 +7,6 @@ set -e
 
 echo "🔍 Iniciando análisis de SonarQube..."
 
-# Verificar que estamos en el directorio correcto
-if [ ! -d "/opt/devops-project" ]; then
-    echo "❌ Directorio /opt/devops-project no encontrado"
-    exit 1
-fi
-
-cd /opt/devops-project
-
 # Verificar que SonarQube esté corriendo
 if ! curl -f http://localhost:9000 > /dev/null 2>&1; then
     echo "❌ SonarQube no está corriendo en http://localhost:9000"
@@ -22,17 +14,14 @@ if ! curl -f http://localhost:9000 > /dev/null 2>&1; then
     exit 1
 fi
 
-# Verificar si ya existe el directorio del proyecto
-if [ -d "ProyectoFinal" ]; then
-    echo "📂 Usando directorio existente ProyectoFinal"
-    cd ProyectoFinal
-    # Actualizar el repositorio
-    git pull origin main
-else
-    echo "📥 Clonando repositorio..."
-    # Intentar clonar en el directorio actual
-    git clone https://github.com/rodaalvarez/MundosE-Final.git ProyectoFinal
-    cd ProyectoFinal
+# Usar el directorio de trabajo actual (donde está el código del runner)
+echo "📂 Usando directorio de trabajo actual: $(pwd)"
+
+# Verificar que estamos en el directorio correcto del proyecto
+if [ ! -d "app" ]; then
+    echo "❌ Directorio 'app' no encontrado en $(pwd)"
+    echo "💡 Asegúrate de que el script se ejecute desde la raíz del proyecto"
+    exit 1
 fi
 
 cd app
