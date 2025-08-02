@@ -24,6 +24,15 @@ if [ ! -d "app" ]; then
     exit 1
 fi
 
+# Instalar Node.js si no está disponible
+if ! command -v npm &> /dev/null; then
+    echo "📦 Instalando Node.js..."
+    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+    echo "✅ Node.js instalado: $(node --version)"
+    echo "✅ npm instalado: $(npm --version)"
+fi
+
 cd app
 
 # Instalar dependencias
