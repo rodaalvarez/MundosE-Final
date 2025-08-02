@@ -24,27 +24,6 @@ if [ ! -d "app" ]; then
     exit 1
 fi
 
-# Instalar Java 17 si no está disponible o si la versión es menor
-JAVA_VERSION=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
-if [ "$JAVA_VERSION" -lt 17 ]; then
-    echo "☕ Instalando Java 17..."
-    sudo apt update
-    sudo apt install -y openjdk-17-jdk
-    echo "✅ Java 17 instalado: $(java -version 2>&1 | head -n 1)"
-fi
-
-# Configurar Java 17 como versión por defecto
-echo "🔧 Configurando Java 17 como versión por defecto..."
-sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
-sudo update-alternatives --set javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
-
-# Configurar JAVA_HOME
-export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-export PATH=$JAVA_HOME/bin:$PATH
-
-echo "✅ Java configurado: $(java -version 2>&1 | head -n 1)"
-echo "✅ JAVA_HOME: $JAVA_HOME"
-
 # Instalar Node.js si no está disponible
 if ! command -v npm &> /dev/null; then
     echo "📦 Instalando Node.js..."
@@ -64,26 +43,32 @@ npm ci
 echo "🧪 Ejecutando tests con cobertura..."
 npm test -- --coverage
 
-# Descargar SonarQube Scanner (versión más reciente)
-if [ ! -d "sonar-scanner-4.8.0.2856-linux" ]; then
-    echo "📥 Descargando SonarQube Scanner 4.8.0..."
-    wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
-    unzip sonar-scanner-cli-4.8.0.2856-linux.zip
-    rm sonar-scanner-cli-4.8.0.2856-linux.zip
-fi
+# Usar el scanner que viene con SonarQube
+echo "🔍 Usando scanner integrado de SonarQube..."
 
-# Configurar PATH
-export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin
+# Crear archivo de configuración de SonarQube
+cat > sonar-project.properties << EOF
+sonar.projectKey=devops-project
+sonar.sources=src
+sonar.host.url=http://localhost:9000
+sonar.login=sqp_26d8ef99c7c2ff9fb39b94de2f088fb18f33c8b1
+sonar.javascript.lcov.reportPaths=coverage/lcov.info
+sonar.coverage.exclusions=**/*.test.tsx,**/*.test.ts,**/__tests__/**
+EOF
 
-# Ejecutar análisis de SonarQube
+# Ejecutar análisis usando el scanner que viene con SonarQube
 echo "🔍 Ejecutando análisis de SonarQube..."
-sonar-scanner \
-    -Dsonar.projectKey=devops-project \
-    -Dsonar.sources=src \
-    -Dsonar.host.url=http://localhost:9000 \
-    -Dsonar.login=sqp_26d8ef99c7c2ff9fb39b94de2f088fb18f33c8b1 \
-    -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
-    -Dsonar.coverage.exclusions=**/*.test.tsx,**/*.test.ts,**/__tests__/**
+
+# Usar docker para ejecutar el scanner con la JVM correcta
+docker run --rm \
+  -e SONAR_HOST_URL=http://host.docker.internal:9000 \
+  -e SONAR_LOGIN=sqp_26d8ef99c7c2ff9fb39b94de2f088fb18f33c8b1 \
+  -v "$(pwd):/usr/src" \
+  sonarsource/sonar-scanner-cli:latest \
+  -Dsonar.projectKey=devops-project \
+  -Dsonar.sources=src \
+  -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+  -Dsonar.coverage.exclusions=**/*.test.tsx,**/*.test.ts,**/__tests__/**
 
 echo "✅ Análisis de SonarQube completado"
 echo "🌐 Puedes ver los resultados en: http://192.168.220.128:9000" 
