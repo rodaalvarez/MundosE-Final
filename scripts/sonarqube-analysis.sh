@@ -64,16 +64,16 @@ npm ci
 echo "🧪 Ejecutando tests con cobertura..."
 npm test -- --coverage
 
-# Descargar SonarQube Scanner (versión compatible con Java 11)
-if [ ! -d "sonar-scanner-4.7.2.2612-linux" ]; then
-    echo "📥 Descargando SonarQube Scanner 4.7.2 (compatible con Java 11)..."
-    wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.2.2612-linux.zip
-    unzip sonar-scanner-cli-4.7.2.2612-linux.zip
-    rm sonar-scanner-cli-4.7.2.2612-linux.zip
+# Descargar SonarQube Scanner (versión más reciente)
+if [ ! -d "sonar-scanner-4.8.0.2856-linux" ]; then
+    echo "📥 Descargando SonarQube Scanner 4.8.0..."
+    wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
+    unzip sonar-scanner-cli-4.8.0.2856-linux.zip
+    rm sonar-scanner-cli-4.8.0.2856-linux.zip
 fi
 
 # Configurar PATH
-export PATH=$PATH:$(pwd)/sonar-scanner-4.7.2.2612-linux/bin
+export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin
 
 # Ejecutar análisis de SonarQube
 echo "🔍 Ejecutando análisis de SonarQube..."
