@@ -170,10 +170,10 @@ jobs:
         docker compose pull
         
         echo "🛑 Deteniendo contenedores..."
-        docker compose down
+        docker compose down --remove-orphans || true
         
         echo "🚀 Iniciando contenedores..."
-        docker compose up -d
+        docker compose up -d --force-recreate
         
         echo "🧹 Limpiando recursos no utilizados..."
         docker system prune -f
