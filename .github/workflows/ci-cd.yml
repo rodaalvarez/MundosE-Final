@@ -188,3 +188,4 @@ jobs:
       run: |
         sleep 30
         curl -f http://${{ env.VM_HOST }}:3000 || exit 1 
+        
