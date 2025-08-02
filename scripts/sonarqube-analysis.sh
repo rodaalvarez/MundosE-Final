@@ -24,6 +24,15 @@ if [ ! -d "app" ]; then
     exit 1
 fi
 
+# Instalar Java 17 si no está disponible o si la versión es menor
+JAVA_VERSION=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
+if [ "$JAVA_VERSION" -lt 17 ]; then
+    echo "☕ Instalando Java 17..."
+    sudo apt update
+    sudo apt install -y openjdk-17-jdk
+    echo "✅ Java 17 instalado: $(java -version 2>&1 | head -n 1)"
+fi
+
 # Instalar Node.js si no está disponible
 if ! command -v npm &> /dev/null; then
     echo "📦 Instalando Node.js..."
