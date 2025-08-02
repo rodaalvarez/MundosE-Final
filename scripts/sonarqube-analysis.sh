@@ -22,13 +22,20 @@ if ! curl -f http://localhost:9000 > /dev/null 2>&1; then
     exit 1
 fi
 
-# Clonar el repositorio si no existe
-if [ ! -d "ProyectoFinal" ]; then
+# Verificar si ya existe el directorio del proyecto
+if [ -d "ProyectoFinal" ]; then
+    echo "📂 Usando directorio existente ProyectoFinal"
+    cd ProyectoFinal
+    # Actualizar el repositorio
+    git pull origin main
+else
     echo "📥 Clonando repositorio..."
+    # Intentar clonar en el directorio actual
     git clone https://github.com/rodaalvarez/MundosE-Final.git ProyectoFinal
+    cd ProyectoFinal
 fi
 
-cd ProyectoFinal/app
+cd app
 
 # Instalar dependencias
 echo "📦 Instalando dependencias..."
