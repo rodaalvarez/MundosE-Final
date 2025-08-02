@@ -167,13 +167,13 @@ jobs:
         
         # Actualizar la aplicación
         echo "📦 Actualizando contenedores..."
-        docker-compose pull
+        docker compose pull
         
         echo "🛑 Deteniendo contenedores..."
-        docker-compose down
+        docker compose down
         
         echo "🚀 Iniciando contenedores..."
-        docker-compose up -d
+        docker compose up -d
         
         echo "🧹 Limpiando recursos no utilizados..."
         docker system prune -f
