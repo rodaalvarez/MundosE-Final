@@ -54,61 +54,61 @@ jobs:
         cd app
         npm run build
 
-  # sonarqube:
-  #   needs: test
-  #   runs-on: ubuntu-latest
-  #   
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v4
-  #     with:
-  #       fetch-depth: 0
-  #       
-  #   - name: Setup Node.js
-  #     uses: actions/setup-node@v4
-  #     with:
-  #       node-version: '18'
-  #       cache: 'npm'
-  #       cache-dependency-path: app/package-lock.json
-  #       
-  #   - name: Install dependencies
-  #     run: |
-  #       cd app
-  #       npm ci
-  #       
-  #   - name: Run tests with coverage
-  #     run: |
-  #       cd app
-  #       npm test -- --coverage
-  #       
-  #   - name: Download SonarQube Scanner
-  #     run: |
-  #       cd app
-  #       wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
-  #       unzip sonar-scanner-cli-4.8.0.2856-linux.zip
-  #       export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin
-  #       
-  #   - name: SonarQube Scan
-  #     run: |
-  #       cd app
-  #       export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin
-  #       sonar-scanner \
-  #         -Dsonar.projectKey=devops-project \
-  #         -Dsonar.sources=src \
-  #         -Dsonar.host.url=${{ env.SONAR_HOST_URL }} \
-  #         -Dsonar.login=${{ env.SONAR_TOKEN }} \
-  #         -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
-  #         -Dsonar.coverage.exclusions=**/*.test.tsx,**/*.test.ts,**/__tests__/**
-  #         
-  #   - name: SonarQube Quality Gate Check
-  #     uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
-  #     env:
-  #       SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
-  #     with:
-  #       scanMetadataReportFile: app/.scannerwork/report-task.txt
+  sonarqube:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: app/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd app
+        npm ci
+        
+    - name: Run tests with coverage
+      run: |
+        cd app
+        npm test -- --coverage
+        
+    - name: Download SonarQube Scanner
+      run: |
+        cd app
+        wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
+        unzip sonar-scanner-cli-4.8.0.2856-linux.zip
+        export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin
+        
+    - name: SonarQube Scan
+      run: |
+        cd app
+        export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin
+        sonar-scanner \
+          -Dsonar.projectKey=devops-project \
+          -Dsonar.sources=src \
+          -Dsonar.host.url=${{ env.SONAR_HOST_URL }} \
+          -Dsonar.login=${{ env.SONAR_TOKEN }} \
+          -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+          -Dsonar.coverage.exclusions=**/*.test.tsx,**/*.test.ts,**/__tests__/**
+          
+    - name: SonarQube Quality Gate Check
+      uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
+      env:
+        SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+      with:
+        scanMetadataReportFile: app/.scannerwork/report-task.txt
 
   build-and-push:
-    needs: [test]
+    needs: [test, sonarqube]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     

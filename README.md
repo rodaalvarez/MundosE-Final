@@ -1,6 +1,6 @@
 # 🚀 Proyecto Final DevOps - Next.js Pipeline ✅
 
-Este proyecto implementa un pipeline DevOps completo para una aplicación Next.js, incluyendo CI/CD con GitHub Actions, análisis de calidad con SonarQube, y despliegue automatizado en una VM Ubuntu.
+Este proyecto implementa un pipeline DevOps completo para una aplicación Next.js, incluyendo CI/CD con GitHub Actions, análisis de calidad con SonarQube, y despliegue automatizado en una VM Ubuntu usando un Self-Hosted Runner.
 
 ## 📋 Tabla de Contenidos
 
@@ -17,8 +17,8 @@ Este proyecto implementa un pipeline DevOps completo para una aplicación Next.j
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   GitHub Repo   │───▶│  GitHub Actions │───▶│   VM Ubuntu     │
-│                 │    │   (CI/CD)       │    │   (Production)  │
+│   GitHub Repo   │───▶│  GitHub Actions │───▶│ Self-Hosted     │
+│                 │    │   (CI/CD)       │    │ Runner (VM)     │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                               │
                               ▼
@@ -50,6 +50,7 @@ Este proyecto implementa un pipeline DevOps completo para una aplicación Next.j
 - **Docker** - Containerización
 - **Docker Compose** - Orquestación de contenedores
 - **SonarQube** - Análisis de calidad de código
+- **Self-Hosted Runner** - Ejecuta los jobs en la VM
 
 ### Testing & Quality
 - **Jest** - Framework de testing
@@ -83,7 +84,14 @@ ProyectoFinal/
 ├── scripts/
 │   ├── setup-vm.sh              # Configuración inicial VM
 │   ├── setup-sonarqube.sh       # Configuración SonarQube
+│   ├── setup-github-runner.sh   # Configuración del Self-Hosted Runner
 │   └── deploy.sh                # Script de deployment
+├── docs/
+│   ├── SELF_HOSTED_RUNNER_SETUP.md  # Guía para configurar el runner
+│   ├── GITHUB_SETUP.md              # Configuración de GitHub
+│   ├── QUICK_START.md               # Inicio rápido
+│   ├── SONARQUBE_SETUP.md           # Configuración de SonarQube
+│   └── VMWARE_SETUP.md              # Configuración de VMware
 └── README.md                    # Documentación principal
 ```
 
@@ -104,14 +112,27 @@ ProyectoFinal/
 #### Paso 2: Configurar VM
 ```bash
 # Conectar a la VM via SSH o terminal
-ssh usuario@ip-vm
+ssh rodrigo@192.168.220.128
+
+# Clonar el repositorio
+git clone https://github.com/rodaalvarez/MundosE-Final.git ProyectoFinal
 
 # Ejecutar script de configuración inicial
+cd ProyectoFinal
 chmod +x scripts/setup-vm.sh
 ./scripts/setup-vm.sh
 ```
 
-#### Paso 3: Configurar SonarQube
+#### Paso 3: Configurar Self-Hosted Runner
+```bash
+# Ejecutar script de configuración del runner
+chmod +x scripts/setup-github-runner.sh
+./scripts/setup-github-runner.sh
+
+# Seguir las instrucciones en docs/SELF_HOSTED_RUNNER_SETUP.md
+```
+
+#### Paso 4: Configurar SonarQube
 ```bash
 # Ejecutar script de configuración de SonarQube
 chmod +x scripts/setup-sonarqube.sh
@@ -125,24 +146,20 @@ chmod +x scripts/setup-sonarqube.sh
 2. Subir el código del proyecto
 3. Configurar branch protection para `main`
 
-#### Paso 2: Configurar Secrets
-Ir a `Settings > Secrets and variables > Actions` y agregar:
-
-```
-VM_HOST=ip-de-tu-vm
-VM_USERNAME=usuario-vm
-VM_SSH_KEY=clave-ssh-privada
-SONAR_TOKEN=token-sonarqube
-SONAR_HOST_URL=http://ip-vm:9000
-```
+#### Paso 2: Configurar Self-Hosted Runner
+1. Ir a `Settings > Actions > Runners`
+2. Click en "New self-hosted runner"
+3. Seleccionar Linux y x64
+4. Copiar el token de configuración
+5. Seguir las instrucciones en la VM
 
 #### Paso 3: Configurar SonarQube
-1. Acceder a `http://ip-vm:9000`
+1. Acceder a `http://192.168.220.128:9000`
 2. Login con `admin/admin`
 3. Cambiar contraseña
 4. Crear proyecto: `devops-project`
 5. Generar token de acceso
-6. Agregar token a GitHub Secrets
+6. El token ya está configurado en el workflow
 
 ## 🔄 Pipeline CI/CD
 
@@ -154,24 +171,19 @@ El pipeline se ejecuta automáticamente en:
 
 #### Jobs del Pipeline:
 
-1. **Test Job**
+1. **Test Job** (se ejecuta en GitHub)
    - Instalación de dependencias
    - Linting con ESLint
    - Type checking con TypeScript
    - Testing con Jest
    - Build de la aplicación
 
-2. **SonarQube Job**
-   - Análisis de calidad de código
-   - Generación de reportes de cobertura
-   - Verificación de Quality Gate
-
-3. **Build & Push Job**
+2. **Build & Push Job** (se ejecuta en GitHub)
    - Construcción de imagen Docker
    - Push a GitHub Container Registry
    - Solo se ejecuta en `main`
 
-4. **Deploy Job**
+3. **Deploy Job** (se ejecuta en tu VM con Self-Hosted Runner)
    - Despliegue automático a VM
    - Health check de la aplicación
    - Solo se ejecuta en `main`
@@ -189,10 +201,9 @@ on:
     branches: [ main ]
 
 jobs:
-  test:          # Testing y linting
-  sonarqube:     # Análisis de calidad
-  build-and-push: # Build y push de imagen
-  deploy:        # Despliegue a VM
+  test:          # Testing y linting (en GitHub)
+  build-and-push: # Build y push de imagen (en GitHub)
+  deploy:        # Despliegue a VM (en tu Self-Hosted Runner)
 ```
 
 ## 🚀 Despliegue
@@ -202,25 +213,21 @@ jobs:
 El despliegue se ejecuta automáticamente cuando:
 1. Se hace push a la rama `main`
 2. Todos los tests pasan
-3. SonarQube Quality Gate pasa
-4. La imagen Docker se construye exitosamente
+3. La imagen Docker se construye exitosamente
+4. El Self-Hosted Runner ejecuta el deploy
 
-### Despliegue Manual
+### URL de la Aplicación
 
-```bash
-# En la VM
-cd /opt/devops-project
-./deploy.sh
-```
+**http://192.168.220.128:3000**
 
 ### Verificar Despliegue
 
 ```bash
-# Verificar estado de contenedores
+# En la VM, verificar estado de contenedores
 docker ps
 
 # Ver logs de la aplicación
-docker logs nextjs-devops-app
+docker logs nextjs-app-new
 
 # Verificar health check
 curl http://localhost:3000
@@ -232,16 +239,19 @@ curl http://localhost:3000
 
 ```bash
 # Estado del sistema
-/opt/devops-project/monitor.sh
+docker ps
 
 # Logs de la aplicación
-docker logs -f nextjs-devops-app
+docker logs -f nextjs-app-new
+
+# Estado del Self-Hosted Runner
+sudo systemctl status actions.runner.*
+
+# Logs del runner
+sudo journalctl -u actions.runner.* -f
 
 # Estado de SonarQube
-sonar status
-
-# Backup de SonarQube
-sonar backup
+docker ps | grep sonarqube
 
 # Limpieza de Docker
 docker system prune -f
@@ -252,7 +262,7 @@ docker system prune -f
 - **Health Checks**: Docker verifica la salud de la aplicación
 - **Log Rotation**: Configurado automáticamente
 - **Cleanup**: Limpieza automática de imágenes no utilizadas
-- **Backup**: Scripts de backup para SonarQube
+- **Self-Hosted Runner**: Se ejecuta automáticamente cuando hay jobs
 
 ### Métricas de Calidad
 
@@ -266,16 +276,16 @@ docker system prune -f
 
 ### Problemas Comunes
 
-#### 1. Pipeline falla en SonarQube
+#### 1. Self-Hosted Runner no funciona
 ```bash
-# Verificar que SonarQube esté corriendo
-sonar status
+# Verificar que el runner esté corriendo
+sudo systemctl status actions.runner.*
 
-# Verificar logs de SonarQube
-sonar logs
+# Reiniciar el runner si es necesario
+sudo systemctl restart actions.runner.*
 
-# Reiniciar SonarQube si es necesario
-sonar restart
+# Ver logs del runner
+sudo journalctl -u actions.runner.* -f
 ```
 
 #### 2. Aplicación no responde
@@ -284,23 +294,14 @@ sonar restart
 docker ps
 
 # Ver logs de la aplicación
-docker logs nextjs-devops-app
+docker logs nextjs-app-new
 
 # Reiniciar aplicación
 cd /opt/devops-project
-docker-compose restart
+docker compose restart
 ```
 
-#### 3. Problemas de SSH
-```bash
-# Verificar conectividad SSH
-ssh usuario@ip-vm
-
-# Verificar clave SSH en GitHub
-# Ir a Settings > SSH and GPG keys
-```
-
-#### 4. Problemas de Docker
+#### 3. Problemas de Docker
 ```bash
 # Verificar estado de Docker
 sudo systemctl status docker
@@ -312,6 +313,15 @@ sudo systemctl restart docker
 docker system prune -a
 ```
 
+#### 4. Problemas de permisos
+```bash
+# Verificar permisos del directorio
+ls -la /opt/devops-project/
+
+# Corregir permisos si es necesario
+sudo chown github-runner:github-runner /opt/devops-project/
+```
+
 ### Logs y Debugging
 
 ```bash
@@ -319,16 +329,23 @@ docker system prune -a
 # Ir a Actions > Workflow runs > Ver logs
 
 # Logs de la aplicación
-docker logs -f nextjs-devops-app
+docker logs -f nextjs-app-new
 
-# Logs de SonarQube
-sonar logs
+# Logs del Self-Hosted Runner
+sudo journalctl -u actions.runner.* -f
 
 # Logs del sistema
 journalctl -u docker
 ```
 
 ## 📚 Recursos Adicionales
+
+### Documentación del Proyecto
+- [Configuración Self-Hosted Runner](docs/SELF_HOSTED_RUNNER_SETUP.md)
+- [Configuración GitHub](docs/GITHUB_SETUP.md)
+- [Inicio Rápido](docs/QUICK_START.md)
+- [Configuración SonarQube](docs/SONARQUBE_SETUP.md)
+- [Configuración VMware](docs/VMWARE_SETUP.md)
 
 ### Documentación Oficial
 - [Next.js Documentation](https://nextjs.org/docs)
@@ -354,7 +371,7 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 
 ## 👨‍💻 Autor
 
-**Tu Nombre** - [tu-email@ejemplo.com](mailto:tu-email@ejemplo.com)
+**Rodrigo Alvarez** - [rodaalvarez@github.com](mailto:rodaalvarez@github.com)
 
 ---
 

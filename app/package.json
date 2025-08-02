@@ -2,6 +2,9 @@
   "name": "nextjs-app",
   "version": "1.0.0",
   "private": true,
+  "description": "Aplicación Next.js para el proyecto final de DevOps",
+  "author": "Rodrigo Alvarez",
+  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
