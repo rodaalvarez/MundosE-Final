@@ -33,6 +33,18 @@ if [ "$JAVA_VERSION" -lt 17 ]; then
     echo "✅ Java 17 instalado: $(java -version 2>&1 | head -n 1)"
 fi
 
+# Configurar Java 17 como versión por defecto
+echo "🔧 Configurando Java 17 como versión por defecto..."
+sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+sudo update-alternatives --set javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
+
+# Configurar JAVA_HOME
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export PATH=$JAVA_HOME/bin:$PATH
+
+echo "✅ Java configurado: $(java -version 2>&1 | head -n 1)"
+echo "✅ JAVA_HOME: $JAVA_HOME"
+
 # Instalar Node.js si no está disponible
 if ! command -v npm &> /dev/null; then
     echo "📦 Instalando Node.js..."
